@@ -12,6 +12,7 @@ const routes = [
 { path: '/videos/new', component: () => import('../views/student/UploadVideoView.vue'), meta: { roles: ['user'] } },
 { path: '/videos/:id', component: () => import('../views/student/WatchView.vue'), meta: { roles: ['user'] } },
   { path: '/parent', component: () => import('../views/parent/ParentDashboard.vue'), meta: { roles: ['parent'] } },
+  {path: '/skill-requests',component: () =>import('../views/student/SkillRequestsView.vue'),meta: {roles: ['user']}},
   { path: '/admin', component: () => import('../views/admin/AdminDashboard.vue'), meta: { roles: ['admin'] } },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ];

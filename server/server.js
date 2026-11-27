@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import videoRoutes from './src/routes/videos.js';
 import aiRoutes from './src/routes/ai.js';
-
+import skillRequestRoutes from './src/routes/skillRequests.js';
 import User from './src/models/User.js';
 import authRoutes from './src/routes/auth.js';
 import parentRoutes from './src/routes/parent.js';
@@ -26,8 +26,10 @@ app.use('/api/parent', parentRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/wallet', walletRoutes);
+app.use('/api/skill-requests', skillRequestRoutes);
 app.use('/api/videos', rateLimit({ windowMs: 60 * 1000, max: 120, message: { code: 'TOO_MANY_REQUESTS' } }), videoRoutes);
 app.use('/api/ai', aiRoutes);
+
 app.use((err, _req, res, _next) => {
   console.error(err);
   res.status(500).json({ code: 'SERVER_ERROR' });

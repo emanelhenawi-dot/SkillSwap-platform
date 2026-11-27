@@ -134,5 +134,9 @@
     "FORBIDDEN": "You are not allowed to do this.",
     "UNAUTHORIZED": "Please log in again.",
     "SERVER_ERROR": "Something went wrong. Please try again."
+  },
+  "requests": {
+    "nav": "Skill Requests"
   }
 }
+

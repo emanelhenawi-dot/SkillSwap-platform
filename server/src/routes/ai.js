@@ -6,7 +6,7 @@ import WatchSession from '../models/WatchSession.js';
 import { protect, allow } from '../middleware/auth.js';
 import { fail, wrap } from '../utils/helpers.js';
 import { aiChat } from '../utils/ai.js';
-
+import { aiInterpretSearch } from '../utils/ai.js';
 const router = Router();
 router.use(protect, allow('user'));
 
@@ -39,6 +39,80 @@ router.post('/chat', limiter, wrap(async (req, res) => {
     console.error('AI chat error:', e.message);
     fail(res, 502, 'AI_UNAVAILABLE');
   }
+}));
+
+// ================= AI SEARCH =================
+
+router.post('/search', limiter, wrap(async (req, res) => {
+
+  const query = String(req.body.query || '').trim();
+
+  if (query.length < 2 || query.length > 500) {
+    return fail(res, 400, 'INVALID_INPUT');
+  }
+
+  const language = req.body.language === 'ar'
+    ? 'ar'
+    : 'en';
+
+  let result;
+
+  try {
+    result = await aiInterpretSearch({
+      query,
+      language
+    });
+
+  } catch (error) {
+
+    console.error('AI Search Error:', error.message);
+
+    result = {
+      topic: query,
+      language,
+      level: 'beginner',
+      keywords: [query]
+    };
+  }
+
+  const terms = [
+    result.topic,
+    ...(result.keywords || [])
+  ].filter(Boolean);
+
+  const regex = new RegExp(
+    terms
+      .map(term => String(term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join('|'),
+    'i'
+  );
+
+  const videos = await Video.find({
+    status: 'accepted',
+    language: result.language,
+    $or: [
+      { title: regex },
+      { description: regex }
+    ]
+  })
+    .populate('creator', 'name')
+    .sort('-createdAt')
+    .limit(30)
+    .select('title description durationSec creator language');
+
+  res.json({
+    interpretation: result,
+
+    videos: videos.map(video => ({
+      id: video._id,
+      title: video.title,
+      description: video.description,
+      durationSec: video.durationSec,
+      language: video.language,
+      creatorName: video.creator?.name
+    }))
+  });
+
 }));
 
 export default router;

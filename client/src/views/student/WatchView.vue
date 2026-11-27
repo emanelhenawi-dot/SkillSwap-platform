@@ -3,7 +3,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'v
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import api, { errCode } from '../../services/api';
-import TutorChat from '../../components/TutorChat.vue';
+
 
 const { locale } = useI18n();
 const L = (ar, en) => (locale.value === 'ar' ? ar : en);
@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
         <RouterLink to="/videos" class="btn ghost block">{{ L('كل الفيديوهات', 'All videos') }}</RouterLink>
       </aside>
     </div>
-    <TutorChat v-if="unlocked" :video-id="id" />
+    
   </section>
 </template>
 

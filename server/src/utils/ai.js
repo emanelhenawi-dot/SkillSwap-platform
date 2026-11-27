@@ -20,3 +20,5 @@ async function post(path, body, timeoutMs) {
 
 export const aiChat = (body) => post('/chat', body, 30_000);
 export const aiGenerateQuiz = (body) => post('/quiz/generate', body, 120_000);
+export const aiInterpretSearch = (body) =>
+  post('/search/interpret', body, 30000);

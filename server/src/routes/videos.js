@@ -140,7 +140,7 @@ router.post('/', wrap(async (req, res) => {
   const durationSec = Math.round(Number(durationMin) * 60);
   const text = String(transcript || '').trim();
   if (!media) return fail(res, 400, 'INVALID_VIDEO_URL');
-  if (String(title || '').trim().length < 3 || !(durationSec >= 120 && durationSec <= 4 * 3600) || text.length < 500 || text.length > 50000) {
+  if (String(title || '').trim().length < 3 || !(durationSec >= 3600 && durationSec <= 4 * 3600) || text.length < 500 || text.length > 50000) {
     return fail(res, 400, 'INVALID_INPUT');
   }
   const video = await Video.create({

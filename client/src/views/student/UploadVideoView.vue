@@ -36,7 +36,7 @@ async function submit() {
         <label>{{ L('رابط الفيديو (يوتيوب أو mp4)', 'Video link (YouTube or mp4)') }}</label>
         <input v-model="form.videoUrl" required type="url" placeholder="https://youtu.be/..." style="direction: ltr" />
         <div class="row">
-          <div><label>{{ L('المدة بالدقائق', 'Duration (minutes)') }}</label><input v-model.number="form.durationMin" type="number" min="2" max="240" required /></div>
+          <div><label>{{ L('المدة بالدقائق', 'Duration (minutes)') }}</label><input v-model.number="form.durationMin" type="number" min="60" max="240" required /></div>
           <div><label>{{ L('لغة الفيديو', 'Language') }}</label>
             <select v-model="form.language"><option value="ar">العربية</option><option value="en">English</option></select></div>
         </div>
