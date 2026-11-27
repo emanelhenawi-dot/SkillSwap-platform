@@ -1,8 +1,14 @@
 {
+  "wallet": { "nav": "Wallet" },
   "common": {
+    "safeguards": "Under-18 Safeguards & Escrow Protection Enabled",
+    "safetyHelp": "Safeguards Help",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
     "tagline": "Exchange & Mastery",
     "home": "Home",
     "ssl": "256-bit SSL & Privacy Shield",
+    "videos": "Videos",
     "logout": "Log out",
     "loading": "Loading...",
     "save": "Save"
@@ -86,7 +92,7 @@
   },
   "admin": {
     "title": "Admin Dashboard",
-    "tabs": { "overview": "Overview", "queue": "Review Queue", "flagged": "Flagged Ratings", "users": "Users", "economy": "Economy & Simulator" },
+    "tabs": { "overview": "Overview", "queue": "Review Queue", "flagged": "Flagged Ratings", "users": "Users", "economy": "Economy & Simulator","payments": "Payments"},
     "stats": { "users": "Students/Creators", "parents": "Parents", "minors": "Minors", "pendingVideos": "Pending videos", "flaggedRatings": "Flagged ratings", "treasury": "Treasury (points)" },
     "empty": "Nothing here.",
     "approve": "Accept",

@@ -16,6 +16,7 @@ const logout = () => {
   <header class="header">
     <div class="container">
       <RouterLink to="/" style="text-decoration: none"><AppLogo /></RouterLink>
+      <nav v-if="auth.user?.role === 'user'" class="header-nav"><RouterLink to="/videos">{{ $t('common.videos') }}</RouterLink><RouterLink to="/app">{{ $t('common.home') }}</RouterLink><RouterLink to="/wallet">{{ $t('wallet.nav') }}</RouterLink></nav>
       <div class="actions">
         <span class="badge">🛡 {{ $t('common.ssl') }}</span>
         <LanguageSwitcher />

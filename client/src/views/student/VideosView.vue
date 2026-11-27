@@ -1,0 +1,70 @@
+<script setup>
+import { ref, onMounted, watch, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import api from '../../services/api';
+
+const { locale } = useI18n();
+const L = (ar, en) => (locale.value === 'ar' ? ar : en);
+const tab = ref('browse');
+const videos = ref([]);
+const mine = ref([]);
+const cost = ref(1);
+const msg = ref('');
+const fmt = (s) => `${Math.floor(s / 60)} ${L('د', 'min')}`;
+const statusLabel = computed(() => ({
+  pending: L('قيد المراجعة', 'Pending review'), accepted: L('منشور', 'Published'),
+  rejected: L('مرفوض', 'Rejected'), under_review: L('تحت المراجعة', 'Under review'),
+}));
+
+async function load() {
+  if (tab.value === 'browse') { const { data } = await api.get('/videos'); videos.value = data.videos; cost.value = data.cost; }
+  else mine.value = (await api.get('/videos', { params: { mine: 1 } })).data.videos;
+}
+async function regenerate(v) {
+  msg.value = L('جاري توليد الأسئلة...', 'Generating questions...');
+  try { const { data } = await api.post(`/videos/${v.id}/checkpoints/generate`); msg.value = L(`تم توليد ${data.questions} سؤال.`, `${data.questions} questions generated.`); }
+  catch { msg.value = L('فشل التوليد. جرّب تاني.', 'Generation failed. Try again.'); }
+  load();
+}
+watch(tab, load);
+onMounted(load);
+</script>
+
+<template>
+  <section class="page-wrap">
+    <div class="page-heading">
+      <span class="eyebrow">{{ L('التعلّم', 'MY LEARNING') }}</span>
+      <h1>{{ L('الفيديوهات', 'Videos') }}</h1>
+    </div>
+    <div class="tabs">
+      <button :class="{ active: tab === 'browse' }" @click="tab = 'browse'">{{ L('تصفّح', 'Browse') }}</button>
+      <button :class="{ active: tab === 'mine' }" @click="tab = 'mine'">{{ L('فيديوهاتي', 'My videos') }}</button>
+      <RouterLink to="/videos/new" class="btn sm">+ {{ L('رفع فيديو', 'Upload a video') }}</RouterLink>
+    </div>
+
+    <div v-if="tab === 'browse'" class="grid">
+      <p v-if="!videos.length" class="muted">{{ L('مفيش فيديوهات منشورة لسه.', 'No published videos yet.') }}</p>
+      <RouterLink v-for="v in videos" :key="v.id" :to="`/videos/${v.id}`" class="card-panel" style="text-decoration: none; color: inherit">
+        <h2>{{ v.title }}</h2>
+        <p class="muted">{{ v.creatorName }} · {{ fmt(v.durationSec) }}</p>
+        <p>{{ v.description }}</p>
+        <span class="badge">{{ cost }} {{ L('نقطة', 'credit') }}</span>
+      </RouterLink>
+    </div>
+
+    <div v-else class="card-panel">
+      <div v-if="msg" class="alert info">{{ msg }}</div>
+      <p v-if="!mine.length" class="muted">{{ L('لسه ما رفعتش فيديوهات.', 'You have not uploaded any videos yet.') }}</p>
+      <div v-for="v in mine" :key="v.id" class="list-item">
+        <div>
+          <b>{{ v.title }}</b> <span class="badge" :class="v.status === 'accepted' ? 'accepted' : v.status === 'rejected' ? 'rejected' : 'pending'">{{ statusLabel[v.status] }}</span><br />
+          <span class="muted">{{ L('الأسئلة', 'Questions') }}: {{ v.questions }} · {{ v.aiNotes }}</span>
+        </div>
+        <div class="row" style="flex: 0">
+          <RouterLink v-if="v.status === 'accepted'" :to="`/videos/${v.id}`" class="btn ghost sm">{{ L('فتح', 'Open') }}</RouterLink>
+          <button v-else class="btn ghost sm" @click="regenerate(v)">{{ L('إعادة توليد الأسئلة', 'Regenerate questions') }}</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>

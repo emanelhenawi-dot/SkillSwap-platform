@@ -2,9 +2,10 @@
 import { ref, reactive, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '../../services/api';
-
+import PaymentsPanel from '../../components/admin/PaymentsPanel.vue';
+const tabs = ['overview', 'queue', 'payments', 'flagged', 'users', 'economy'];
 const { t } = useI18n();
-const tabs = ['overview', 'queue', 'flagged', 'users', 'economy'];
+
 const tab = ref('overview');
 
 const stats = ref({});
@@ -100,6 +101,7 @@ onMounted(load);
       <label>{{ t('admin.treasuryShare') }}</label><input v-model.number="eco.treasuryShare" type="number" step="0.1" min="0" />
       <button class="btn block" @click="saveEco">{{ t('admin.save') }}</button>
       <div v-if="saved" class="alert ok">{{ t('admin.saved') }}</div>
+      <PaymentsPanel v-if="tab === 'payments'" />   
     </div>
     <div class="card">
       <label>{{ t('admin.views') }}</label><input v-model.number="views" type="number" min="0" />

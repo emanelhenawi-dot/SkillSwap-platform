@@ -6,7 +6,9 @@ import Transaction from '../models/Transaction.js';
 import Setting, { DEFAULT_ECONOMY } from '../models/Setting.js';
 import { protect, allow } from '../middleware/auth.js';
 import { fail, wrap } from '../utils/helpers.js';
-
+import mongoose from 'mongoose';
+import PaymentOrder from '../models/PaymentOrder.js';
+import { credit } from '../utils/ledger.js';
 const router = Router();
 router.use(protect, allow('admin'));
 
@@ -30,7 +32,11 @@ router.get('/videos', wrap(async (req, res) => {
 
 router.patch('/videos/:id', wrap(async (req, res) => {
   if (!['accepted', 'rejected', 'under_review'].includes(req.body.status)) return fail(res, 400, 'INVALID_INPUT');
-  await Video.findByIdAndUpdate(req.params.id, { status: req.body.status });
+  const video = await Video.findById(req.params.id);
+  if (!video) return fail(res, 404, 'NOT_FOUND');
+  if (req.body.status === 'accepted' && video.checkpoints.length < 2) return fail(res, 400, 'NO_QUIZ');
+  video.status = req.body.status;
+  await video.save();
   res.json({ ok: true });
 }));
 
@@ -105,6 +111,37 @@ router.post('/simulate', wrap(async (req, res) => {
     treasuryEarn: views * ts,
     treasuryMarginPct: cost ? +((ts / cost) * 100).toFixed(1) : 0,
   });
+}));
+
+// ---- Manual payments ----
+router.get('/payments', wrap(async (req, res) => {
+  const status = ['submitted', 'paid', 'failed', 'pending'].includes(req.query.status) ? req.query.status : 'submitted';
+  const orders = await PaymentOrder.find({ status }).populate('user', 'name email').sort('-createdAt').limit(100).lean();
+  res.json({ orders });
+}));
+
+router.post('/payments/:id/confirm', wrap(async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) return fail(res, 404, 'NOT_FOUND');
+  // الانتقال submitted → paid ذرّي: مستحيل يتأكد الطلب مرتين
+  const order = await PaymentOrder.findOneAndUpdate(
+    { _id: req.params.id, status: 'submitted' },
+    { status: 'paid', paidAt: new Date(), reviewedBy: req.user._id },
+    { new: true }
+  );
+  if (!order) return fail(res, 409, 'ALREADY_DECIDED');
+  await credit(order.user, order.credits, 'purchase', `Order ${order.reference}`);
+  res.json({ ok: true });
+}));
+
+router.post('/payments/:id/reject', wrap(async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) return fail(res, 404, 'NOT_FOUND');
+  const order = await PaymentOrder.findOneAndUpdate(
+    { _id: req.params.id, status: 'submitted' },
+    { status: 'failed', reviewedBy: req.user._id, reviewNote: String(req.body.note || '').slice(0, 200) },
+    { new: true }
+  );
+  if (!order) return fail(res, 409, 'ALREADY_DECIDED');
+  res.json({ ok: true });
 }));
 
 export default router;
